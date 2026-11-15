@@ -4,7 +4,9 @@ import { AvisosProvider } from "./components/Avisos";
 import Caja from "./pages/Caja";
 import Productos from "./pages/Productos";
 import Cierre from "./pages/Cierre";
-import { ReceiptText, Package, ChartColumn, LockKeyhole, ScanBarcode } from "lucide-react";
+import Configuracion from "./pages/Configuracion";
+import { useConfig } from "./lib/config";
+import { ReceiptText, Package, ChartColumn, LockKeyhole, ScanBarcode, Settings } from "lucide-react";
 import { EsqueletoDashboard } from "./components/Esqueletos";
 
 // Los gráficos (Recharts) se cargan solo al abrir el Dashboard
@@ -15,12 +17,25 @@ const SECCIONES = [
   { ruta: "/productos", nombre: "Productos", Icono: Package },
   { ruta: "/dashboard", nombre: "Dashboard", Icono: ChartColumn },
   { ruta: "/cierre", nombre: "Cierre", Icono: LockKeyhole },
+  { ruta: "/configuracion", nombre: "Configuración", Icono: Settings },
 ];
+
+/** Fecha y hora en la barra superior. */
+function Reloj() {
+  const [ahora, setAhora] = useState(() => new Date());
+  useEffect(() => { const t = setInterval(() => setAhora(new Date()), 15000); return () => clearInterval(t); }, []);
+  return (
+    <span className="reloj num">
+      {ahora.toLocaleDateString("es-BO", { weekday: "short", day: "numeric", month: "short" })} · {ahora.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}
+    </span>
+  );
+}
 
 function Layout() {
   // El carrito vive aquí para no perderse al cambiar de pantalla
   const [carrito, setCarrito] = useState([]);
   const { pathname } = useLocation();
+  const { negocio } = useConfig();
 
   useEffect(() => {
     document.body.classList.toggle("v-caja", pathname === "/caja");
@@ -30,11 +45,14 @@ function Layout() {
     <>
       <header className="top">
         <div className="top-in">
-          <div className="brand"><span className="brand-dot"><ScanBarcode size={16} strokeWidth={2.2} /></span>Mi Caja</div>
+          <div className="brand"><span className="brand-dot"><ScanBarcode size={16} strokeWidth={2.2} /></span>{negocio || "Mi Caja"}</div>
           <nav className="tabs" aria-label="Secciones">
-            {SECCIONES.map((s) => <NavLink key={s.ruta} to={s.ruta}>{s.nombre}</NavLink>)}
+            {SECCIONES.map((s) => <NavLink key={s.ruta} to={s.ruta}><s.Icono size={16} strokeWidth={2} />{s.nombre}</NavLink>)}
           </nav>
-          <div className="conn ok"><i /><span>Guardado en este dispositivo</span></div>
+          <div className="top-der">
+            <Reloj />
+            <div className="conn ok" title="Los datos se guardan en esta computadora"><i /><span>Guardado en esta computadora</span></div>
+          </div>
         </div>
       </header>
       <main>
@@ -43,6 +61,7 @@ function Layout() {
           <Route path="/productos" element={<Productos />} />
           <Route path="/dashboard" element={<Suspense fallback={<EsqueletoDashboard />}><Dashboard /></Suspense>} />
           <Route path="/cierre" element={<Cierre />} />
+          <Route path="/configuracion" element={<Configuracion />} />
           <Route path="/respaldo" element={<Navigate to="/cierre" replace />} />
           <Route path="*" element={<Navigate to="/caja" replace />} />
         </Routes>

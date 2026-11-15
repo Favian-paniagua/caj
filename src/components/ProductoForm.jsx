@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
-import Escaner from "./EscanerLazy";
 import { useAvisos } from "./Avisos";
 import { aNumero } from "../lib/formato";
 import { guardarProducto, eliminarProducto } from "../db/repositorio";
@@ -50,7 +49,7 @@ export default function ProductoForm({ producto, titulo, nota, textoGuardar, onC
   }
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
-  const [escaneando, setEscaneando] = useState(false);
+  const nombreRef = useRef(null);
   const cambiar = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
 
@@ -96,16 +95,19 @@ export default function ProductoForm({ producto, titulo, nota, textoGuardar, onC
                 <button type="button" className="foto-quitar" aria-label="Quitar imagen" onClick={() => setF((x) => ({ ...x, imagen: null }))}><X size={14} strokeWidth={2.5} /></button>
               )}
             </div>
-            <span className="sub">{vistaPrevia ? "Toca la imagen para cambiarla" : "Agregar imagen"}</span>
+            <span className="sub">{vistaPrevia ? "Haz clic en la imagen para cambiarla" : "Agregar imagen"}</span>
             <input ref={archivo} className="hidden-input" type="file" accept="image/*" onChange={elegirImagen} />
           </div>
           <label className="l" htmlFor="f_codigo">Código de barras</label>
-          <div className="row">
-            <input className="f num" id="f_codigo" value={f.codigo} onChange={cambiar("codigo")} placeholder="Ej. 7771234567890" />
-            <button type="button" className="btn icon" onClick={() => setEscaneando(true)} aria-label="Escanear código" style={{ minHeight: 46, minWidth: 46 }}><ScanBarcode size={20} /></button>
+          <div className="campo-ico">
+            <ScanBarcode size={20} aria-hidden="true" />
+            <input className="f num" id="f_codigo" value={f.codigo} onChange={cambiar("codigo")} placeholder="Pasa el lector o escribe el código"
+              autoFocus={!f.codigo} autoComplete="off"
+              // El lector USB termina con Enter: en vez de enviar el formulario, pasa al nombre
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); nombreRef.current?.focus(); } }} />
           </div>
           <label className="l mt" htmlFor="f_nombre">Nombre</label>
-          <input className="f" id="f_nombre" value={f.nombre} onChange={cambiar("nombre")} placeholder="Ej. Coca-Cola 2L" />
+          <input ref={nombreRef} className="f" id="f_nombre" autoFocus={!!f.codigo} value={f.nombre} onChange={cambiar("nombre")} placeholder="Ej. Coca-Cola 2L" />
           <label className="l mt" htmlFor="f_cat">Categoría</label>
           <select className={"f select" + (f.categoria ? "" : " vacio")} id="f_cat" value={f.categoria} onChange={cambiar("categoria")}>
             {!f.categoria && <option value="" disabled>Elige una categoría</option>}
@@ -125,7 +127,6 @@ export default function ProductoForm({ producto, titulo, nota, textoGuardar, onC
           </div>
         </form>
       </Modal>
-      <Escaner abierto={escaneando} onCerrar={() => setEscaneando(false)} onCodigo={(c) => setF((x) => ({ ...x, codigo: c }))} />
     </>
   );
 }

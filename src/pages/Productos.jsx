@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/database";
 import { CATEGORIAS, categoriaDe } from "../lib/categorias";
@@ -8,6 +8,7 @@ import ProductoForm from "../components/ProductoForm";
 import { Package, PackagePlus, TriangleAlert } from "lucide-react";
 import { EsqueletoFilasProductos, Sk } from "../components/Esqueletos";
 import MiniaturaProducto from "../components/MiniaturaProducto";
+import { useEnfocarAlEscribir } from "../lib/teclado";
 
 
 /** Inventario: lista con filtro por categoría y búsqueda; alta y edición de productos. */
@@ -17,6 +18,19 @@ export default function Productos() {
   const [q, setQ] = useState("");
   const [categoria, setCategoria] = useState("todas");
   const [editando, setEditando] = useState(null);   // {} = nuevo, {id…} = editar
+  const busca = useRef(null);
+  useEnfocarAlEscribir(busca, !editando);
+  useEffect(() => { if (!editando) busca.current?.focus(); }, [editando]);
+
+  // Con el lector USB: Enter con un código abre ese producto, o el formulario de alta si no existe
+  function enterBuscar(e) {
+    if (e.key !== "Enter") return;
+    const v = q.trim();
+    if (!v || !productos) return;
+    const p = productos.find((x) => String(x.codigo) === v);
+    if (p) { setEditando(p); setQ(""); }
+    else if (/^\d{4,}$/.test(v)) { setEditando({ codigo: v }); setQ(""); }
+  }
 
   // Todas las categorías fijas, con su cantidad de productos
   const categorias = useMemo(() => CATEGORIAS.map((c) => [c, (productos || []).filter((p) => categoriaDe(p) === c).length]), [productos]);
@@ -44,7 +58,8 @@ export default function Productos() {
   return (
     <section className="view on">
       <div className="barra-productos">
-        <input className="f" placeholder="Buscar producto…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar producto" />
+        <input ref={busca} className="f" placeholder="Buscar por nombre o pasar el lector…" value={q} autoFocus autoComplete="off"
+          onChange={(e) => setQ(e.target.value)} onKeyDown={enterBuscar} aria-label="Buscar producto" />
         <button className="btn primary" onClick={() => setEditando({})} aria-label="Nuevo producto">
           <PackagePlus size={18} /><span className="txt-largo">Nuevo producto</span><span className="txt-corto">Nuevo</span>
         </button>
@@ -72,7 +87,7 @@ export default function Productos() {
           <ul className="plist"><EsqueletoFilasProductos /></ul>
         ) : productos.length === 0 ? (
           <div className="empty"><div className="ico"><Package size={34} strokeWidth={1.5} /></div>
-            Aún no hay productos.<br />Toca “Nuevo producto” para registrar el primero, con su categoría.</div>
+            Aún no hay productos.<br />Haz clic en “Nuevo producto” o pasa el lector por un código para registrar el primero, con su categoría.</div>
         ) : lista.length === 0 ? (
           <div className="empty">{q ? <>Nada coincide con “{q}”.</> : "No hay productos en esta categoría."}</div>
         ) : (
@@ -82,7 +97,8 @@ export default function Productos() {
 
       {editando && (
         <ProductoForm producto={editando} onCerrar={() => setEditando(null)}
-          onGuardado={() => avisar(editando.id ? "Cambios guardados" : "Producto guardado")} />
+          onGuardado={() => avisar(editando.id ? "Cambios guardados" : "Producto guardado")}
+          nota={!editando.id && editando.codigo ? "Este código no está registrado. Completa los datos del producto." : undefined} />
       )}
     </section>
   );

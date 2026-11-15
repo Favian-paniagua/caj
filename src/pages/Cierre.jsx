@@ -8,8 +8,10 @@ import { exportarExcel } from "../lib/exportarExcel";
 import { BILLETES, MONEDAS, efectivoEsperado, totalConteo, diferencia } from "../lib/arqueo";
 import { METODOS } from "../lib/estadisticas";
 import { useAvisos } from "../components/Avisos";
+import { imprimirCierre } from "../lib/recibo";
+import { leerConfig } from "../lib/config";
 import { EsqueletoTurno, Sk } from "../components/Esqueletos";
-import { ArrowDown, ArrowUp, ChevronLeft, CircleCheck, Coins, FileDown, FileSpreadsheet, LockKeyhole, Pencil, Wallet } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronLeft, CircleCheck, Coins, FileDown, FileSpreadsheet, LockKeyhole, Pencil, Printer, Wallet } from "lucide-react";
 
 function descargar(nombre, contenido, tipo) {
   const blob = contenido instanceof Blob ? contenido : new Blob([contenido], { type: tipo });
@@ -165,8 +167,11 @@ export default function Cierre() {
         total: r.total, costo: r.costo, ganancia: r.ganancia, ventas: r.ventas, unidades: r.unidades, porMetodo: r.porMetodo,
         efectivoEsperado: esperado, ...arqueo,
       });
+      if (leerConfig().imprimirCierre) {
+        imprimirCierre(cierre, ventas).catch((e) => avisar("La caja se cerró, pero no se pudo imprimir el ticket: " + e.message, 4500));
+      }
       try {
-        descargar(`cierre-de-caja-${cierre.dia}.pdf`, await generarPdfCierre({ ventas, cierre }));
+        descargar(`cierre-de-caja-${cierre.dia}.pdf`, await generarPdfCierre({ ventas, cierre, nombreNegocio: leerConfig().negocio || "Mi Caja" }));
       } catch (e) {
         avisar("La caja se cerró, pero no se pudo crear el PDF: " + e.message, 4500);
       }
@@ -183,10 +188,16 @@ export default function Cierre() {
     setCerrando(true);
     try {
       const vs = (await ventasDeCierre(cierre)).sort((a, b) => a.ts - b.ts);
-      descargar(`cierre-de-caja-${cierre.dia}.pdf`, await generarPdfCierre({ ventas: vs, cierre }));
+      descargar(`cierre-de-caja-${cierre.dia}.pdf`, await generarPdfCierre({ ventas: vs, cierre, nombreNegocio: leerConfig().negocio || "Mi Caja" }));
     } catch (e) {
       avisar("No se pudo generar el PDF: " + e.message, 4000);
     } finally { setCerrando(false); }
+  }
+
+  async function ticketCierre(cierre) {
+    if (!cierre) return;
+    try { await imprimirCierre(cierre, await ventasDeCierre(cierre)); }
+    catch (e) { avisar("No se pudo imprimir: " + e.message, 4000); }
   }
 
   async function exportarAExcel() {
@@ -213,8 +224,9 @@ export default function Cierre() {
         </div>
         <Diferencia monto={recien.diferencia} tipo={recien.tipoDiferencia} grande />
         {recien.observacion && <p className="sub obs">“{recien.observacion}”</p>}
-        <p className="sub">El reporte en PDF se descargó en tu dispositivo.</p>
-        <div className="row" style={{ width: "100%" }}>
+        <p className="sub">El reporte en PDF se descargó en esta computadora{leerConfig().imprimirCierre ? " y se envió el ticket a la impresora" : ""}.</p>
+        <div className="row" style={{ width: "100%", flexWrap: "wrap" }}>
+          <button className="btn" style={{ flex: 1 }} onClick={() => ticketCierre(recien)}><Printer size={18} /> Imprimir ticket</button>
           <button className="btn" style={{ flex: 1 }} onClick={() => descargarPdf(recien)} disabled={cerrando}><FileDown size={18} /> PDF otra vez</button>
           <button className="btn primary" style={{ flex: 1 }} onClick={() => setRecien(null)}>Listo</button>
         </div>
@@ -231,7 +243,7 @@ export default function Cierre() {
     contenido = (
       <>
         <p className="sub" style={{ marginTop: 0 }}>
-          Al terminar el día, cuenta el efectivo para cerrar la caja. Se guardará el resultado y se descargará el reporte en PDF.
+          Al terminar el día, cuenta el efectivo para cerrar la caja. Se guardará el resultado, se imprimirá el ticket del cierre y se descargará el reporte en PDF.
         </p>
         <div className="resumen-turno mt">
           <div><span className="sub">Abierta</span><b className="num">{new Date(apertura.ts).toDateString() === new Date().toDateString() ? horaCorta(apertura.ts) : fechaHora(apertura.ts)}</b></div>
@@ -263,9 +275,12 @@ export default function Cierre() {
                 <Diferencia monto={c.diferencia} tipo={c.tipoDiferencia} />
               </>
             )}
-            <button className="btn mt" onClick={() => descargarPdf(c)} disabled={cerrando}>
-              {cerrando ? <span className="spin" /> : <><FileDown size={18} /> Descargar reporte del último cierre</>}
-            </button>
+            <div className="row mt" style={{ flexWrap: "wrap" }}>
+              <button className="btn" onClick={() => descargarPdf(c)} disabled={cerrando}>
+                {cerrando ? <span className="spin" /> : <><FileDown size={18} /> Descargar reporte del último cierre</>}
+              </button>
+              <button className="btn" onClick={() => ticketCierre(c)}><Printer size={18} /> Imprimir ticket</button>
+            </div>
           </div>
         )}
       </>

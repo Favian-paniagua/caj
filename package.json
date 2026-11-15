@@ -1,17 +1,15 @@
 {
-  "name": "sistema-de-cajero",
+  "name": "caj",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Sistema de caja (punto de venta) con escaneo de productos y dashboard de ventas",
+  "description": "Sistema de caja para computadora con lector de códigos USB e impresora de recibos",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview --host"
   },
   "dependencies": {
-    "@zxing/browser": "^0.2.1",
-    "@zxing/library": "^0.23.0",
     "dexie": "^4.4.7",
     "dexie-react-hooks": "^4.4.0",
     "exceljs": "^4.4.0",

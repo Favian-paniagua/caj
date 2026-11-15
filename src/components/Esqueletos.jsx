@@ -18,24 +18,20 @@ function Contenedor({ children, etiqueta = "Cargando" }) {
   );
 }
 
-/** Caja: botón cuadrado de escanear + resumen del turno. */
+/** Caja: buscador + carrito a la izquierda, total y resumen a la derecha. */
 export function EsqueletoCaja() {
   return (
     <Contenedor etiqueta="Cargando caja">
-      <div className="caja">
-        <div className="card pad scan-hero">
-          <Sk w="min(62vw, 220px)" h="auto" r={28} style={{ aspectRatio: "1" }} />
-          <Sk w="70%" h={12} />
-          <Sk w="50%" h={12} />
-        </div>
-        <div className="pay-col">
-          <div className="card pad">
-            <div className="row" style={{ justifyContent: "space-between" }}>
-              <div className="sk-col"><Sk w={130} h={12} /><Sk w={110} h={24} /></div>
-              <div className="sk-col" style={{ alignItems: "flex-end" }}><Sk w={50} h={12} /><Sk w={28} h={24} /></div>
-            </div>
-            <Sk w="85%" h={12} style={{ marginTop: 14 }} />
+      <div className="pos">
+        <div className="card pos-izq">
+          <div className="pos-busca"><Sk h={58} r={11} /></div>
+          <div className="pos-lista" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
+            {[70, 55, 62].map((w, i) => <Sk key={i} w={w + "%"} h={16} />)}
           </div>
+        </div>
+        <div className="pos-der">
+          <div className="card pad pos-total"><Sk w={100} h={12} /><Sk w={200} h={46} /><Sk h={64} r={14} style={{ marginTop: 10 }} /></div>
+          <div className="card pad"><Sk w={120} h={14} /><Sk w="80%" h={12} style={{ marginTop: 12 }} /></div>
         </div>
       </div>
     </Contenedor>

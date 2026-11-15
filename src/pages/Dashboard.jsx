@@ -6,7 +6,8 @@ import { anularVenta } from "../db/repositorio";
 import { dinero } from "../lib/formato";
 import { RANGOS, METODOS, periodo, entre, resumen, serie, masVendidos, porMetodo } from "../lib/estadisticas";
 import { useAvisos } from "../components/Avisos";
-import { ArrowDown, ArrowUp, CircleCheck, TriangleAlert } from "lucide-react";
+import { ArrowDown, ArrowUp, CircleCheck, Printer, TriangleAlert } from "lucide-react";
+import { imprimirRecibo, numeroVenta } from "../lib/recibo";
 import { EsqueletoDashboard } from "../components/Esqueletos";
 
 function Variacion({ actual, anterior, etiqueta }) {
@@ -58,6 +59,11 @@ export default function Dashboard() {
     if (!ok) return;
     await anularVenta(v.id);
     avisar("Venta anulada");
+  }
+
+  async function reimprimir(v) {
+    try { await imprimirRecibo(v, { copia: true }); }
+    catch (e) { avisar("No se pudo imprimir: " + e.message, 4000); }
   }
 
   if (!datos) return <EsqueletoDashboard />;
@@ -156,9 +162,10 @@ export default function Dashboard() {
               return (
                 <li key={v.id}>
                   <div className="grow">
-                    <div className="num">{dinero(v.total)} <span className="sub" style={{ fontWeight: 400 }}>· {METODOS[v.metodo]?.nombre || v.metodo} · {cuando}</span></div>
+                    <div className="num">{dinero(v.total)} <span className="sub" style={{ fontWeight: 400 }}>· N.º {numeroVenta(v.id)} · {METODOS[v.metodo]?.nombre || v.metodo} · {cuando}</span></div>
                     <div className="sub" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(v.items || []).map((i) => `${i.cantidad}× ${i.nombre}`).join(", ")}</div>
                   </div>
+                  <button className="btn ghost" style={{ minHeight: 36, padding: "6px 10px", fontSize: 13 }} onClick={() => reimprimir(v)}><Printer size={15} /> Recibo</button>
                   <button className="btn ghost danger" style={{ minHeight: 36, padding: "6px 10px", fontSize: 13 }} onClick={() => anular(v)}>Anular</button>
                 </li>
               );
