@@ -288,7 +288,7 @@ export default function Cierre() {
   }
 
   return (
-    <section className="view on">
+    <section className="view on pagina-angosta">
       <div className="card pad">
         {!recien && <h2>{paso === "conteo" && apertura ? "Cerrar caja" : "Cierre de caja"}</h2>}
         {contenido}

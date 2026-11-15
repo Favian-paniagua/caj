@@ -172,7 +172,12 @@ nav.bottom a.active{color:var(--accent)}
 /* Ventana arriba (cobro): deja libre la parte de abajo para el teclado del celular */
 .ov.arriba{align-items:flex-start}
 .ov.arriba .modal{border-radius:0 0 20px 20px;max-height:100dvh;animation:down .2s cubic-bezier(.2,.8,.2,1)}
-@media(min-width:720px){.ov.arriba{padding-top:48px}.ov.arriba .modal{border-radius:20px}}
+/* En computadora no hay teclado en pantalla: las ventanas van centradas y siempre caben con sus botones */
+@media(min-width:720px){
+  .ov.arriba{align-items:center;padding:20px}
+  .ov.arriba .modal{border-radius:20px;animation:up .2s cubic-bezier(.2,.8,.2,1)}
+  .ov .modal{max-height:calc(100dvh - 40px)}
+}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--surface-2);padding:4px;border-radius:12px}
 .seg button{border:0;background:transparent;border-radius:9px;padding:10px 6px;font-weight:600;cursor:pointer;color:var(--text-2)}
 .seg button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
@@ -365,3 +370,19 @@ input.f.con-ico{padding-left:46px}
 code.c{background:var(--surface-2);border-radius:6px;padding:2px 6px;font-size:12.5px;word-break:break-all}
 @media(max-width:1279px){.conn span{display:none}}
 @media(max-width:1099px){nav.tabs a svg{display:none}}
+
+/* Formulario de producto más compacto en computadora */
+@media(min-width:720px){
+  .modal form.mt2{margin-top:12px}
+  .modal .foto-prod{flex-direction:row;justify-content:center;gap:12px;margin-bottom:14px}
+  .modal .foto-caja{width:60px;height:60px}
+  .modal .mt{margin-top:10px}
+  .modal .acts{margin-top:14px}
+}
+@media(min-width:720px) and (max-height:760px){
+  .modal{padding:16px 20px}
+  .modal input.f,.modal select.f{min-height:42px;padding-top:9px;padding-bottom:9px}
+}
+
+/* Cierre: mismo ancho que los demás recuadros, centrado */
+.pagina-angosta{max-width:760px;margin:0 auto}
