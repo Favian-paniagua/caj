@@ -1,16 +1,14 @@
-import { Bath, Cookie, Croissant, CupSoda, Milk, Package, Soup, SprayCan } from "lucide-react";
+import { Citrus, Cookie, CupSoda, Droplets, GlassWater, Package, Zap } from "lucide-react";
 import { categoriaDe } from "../lib/categorias";
 
 /** Ícono que representa cada categoría cuando el producto no tiene foto. */
 const ICONOS = {
-  "Lácteos": Milk,
-  "Limpieza": SprayCan,
-  "Bebidas": CupSoda,
-  "Cuidado personal": Bath,
+  "Sodas": CupSoda,
+  "Jugos": Citrus,
+  "Beb. Energizantes": Zap,
+  "Beb. Hidratante": Droplets,
+  "Aguas": GlassWater,
   "Snacks": Cookie,
-  "Panadería": Croissant,
-  "Alimentos": Soup,
-  "Otros": Package,
 };
 
 // URLs de fotos ya preparadas (por producto y versión), para no recrearlas en cada actualización

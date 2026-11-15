@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import { useAvisos } from "./Avisos";
 import { aNumero } from "../lib/formato";
 import { guardarProducto, eliminarProducto } from "../db/repositorio";
-import { CATEGORIAS, categoriaDe } from "../lib/categorias";
+import { CATEGORIAS } from "../lib/categorias";
 import { ImagePlus, ScanBarcode, X } from "lucide-react";
 import { prepararImagen } from "../lib/imagen";
 
@@ -19,7 +19,8 @@ export default function ProductoForm({ producto, titulo, nota, textoGuardar, onC
   const [f, setF] = useState({
     codigo: producto?.codigo ?? "",
     nombre: producto?.nombre ?? "",
-    categoria: producto?.id ? categoriaDe(producto) : "",   // al crear, se elige; al editar, la actual
+    // al crear se elige; al editar se mantiene la actual (si ya no existe en la lista, hay que elegir otra)
+    categoria: producto?.id && CATEGORIAS.includes(producto.categoria) ? producto.categoria : "",
     precio: aTexto(producto?.precio),
     costo: aTexto(producto?.costo),
     stock: producto?.stock ?? "",

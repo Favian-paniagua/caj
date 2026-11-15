@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db/database";
-import { CATEGORIAS, categoriaDe } from "../lib/categorias";
+import { CATEGORIAS, OTROS, categoriaDe } from "../lib/categorias";
 import { dinero } from "../lib/formato";
 import { useAvisos } from "../components/Avisos";
 import ProductoForm from "../components/ProductoForm";
@@ -33,7 +33,13 @@ export default function Productos() {
   }
 
   // Todas las categorías fijas, con su cantidad de productos
-  const categorias = useMemo(() => CATEGORIAS.map((c) => [c, (productos || []).filter((p) => categoriaDe(p) === c).length]), [productos]);
+  // Las categorías fijas con su cantidad; "Sin categoría" solo aparece si hay productos así
+  const categorias = useMemo(() => {
+    const cuenta = (c) => (productos || []).filter((p) => categoriaDe(p) === c).length;
+    const lista = CATEGORIAS.map((c) => [c, cuenta(c)]);
+    const sin = cuenta(OTROS);
+    return sin ? [...lista, [OTROS, sin]] : lista;
+  }, [productos]);
   const catFiltro = categoria;
 
   const lista = (productos || []).filter((p) => {
